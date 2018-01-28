@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 				
 				calcString();
 				
-				printf("%g\n", infixString->val);
+				printf("%.12f\n", infixString->val);
 				freeString();
 			}
 		}
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 	
 	calcString();
 	
-	printf("%g\n", infixString->val);
+	printf("%.12f\n", infixString->val);
 	freeString();
 	
 	return 0;
@@ -203,6 +203,7 @@ void freeString(void) {
 }
 
 void parseString(char *string) {
+	static operation_t lastParse = OPEN_PAREN;
 	infix_t *next = calloc(sizeof(infix_t), 1);
 	
 	for (int i = 0; string[i]; i++) {
@@ -222,10 +223,18 @@ void parseString(char *string) {
 	} else if (*string == '+') {
 		next->op = ADD;
 	} else if (*string == '-') {
-		next->op = SUB;
-		if (infixString == NULL) {
-			parseString("0.0");
+		if (lastParse != NOP) {
+			if (infixString != NULL) {
+				infix_t *i;
+				for (i = infixString; i->next != NULL; i = i->next);
+				i->next = calloc(sizeof(infix_t), 1);
+				return;
+			} else {
+				infixString = calloc(sizeof(infix_t), 1);
+				return;
+			}
 		}
+		next->op = SUB;
 	} else if (*string == '*') {
 		next->op = MUL;
 	} else if (*string == '/') {
@@ -237,34 +246,28 @@ void parseString(char *string) {
 		return;
 	}
 	
-	if (!next) {
-		return;
-	}
+	lastParse = next->op;
 	
 	if (next->op == NOP) {
 		if (infixString != NULL) {
 			infix_t *i;
 			for (i = infixString; i->next != NULL; i = i->next);
 			i->next = next;
+			return;
 		} else {
 			infixString = next;
 			return;
 		}
 	} else {
-		if (infixString == NULL) {
-			parseString("0.0");
-		}
-		if (stack == NULL) {
-			stack = next;
-			return;
-		}
-		
 		if (next->op == OPEN_PAREN) {
 			next->next = stack;
 			stack = next;
 			return;
 		} else if (next->op == CLOSE_PAREN) {
 			free(next);
+			if (infixString == NULL) {
+				return;
+			}
 			while (stack && stack->op != OPEN_PAREN) {
 				infix_t *stringEnd = infixString;
 				for (; stringEnd->next != NULL; stringEnd = stringEnd->next);
@@ -277,8 +280,11 @@ void parseString(char *string) {
 				stack = stack->next;
 				free(outtaHere);
 			}
-			printInfixString();
-			printf("\n\n");
+			return;
+		}
+		
+		if (stack == NULL) {
+			stack = next;
 			return;
 		}
 		
@@ -325,7 +331,6 @@ int postfixToInfix(const char *expression) {
 		char cur = expression[i];
 		
 		top:
-		
 		if (state == NO_STATE) {
 			
 			if ((cur >= '0' && cur <= '9') || cur == '.') {
@@ -395,7 +400,6 @@ int postfixToInfix(const char *expression) {
 					state = NO_STATE;
 					parseString(token);
 					goto top;
-					break;
 			}
 			
 		}

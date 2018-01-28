@@ -4,6 +4,8 @@ CFLAGS := -std=c99
 SRCS := cc.c
 OBJS := $(SRCS:.c=.o)
 
+.PHONY: clean
+
 cc.exe: $(OBJS) .depend
 	$(CC) $(CFLAGS) $(OBJS) -o $@
 	
@@ -14,3 +16,6 @@ cc.exe: $(OBJS) .depend
 	$(CC) $(CFLAGS) -c $<
 
 include .depend
+
+clean:
+	rm -fv $(OBJS) cc.exe .depend

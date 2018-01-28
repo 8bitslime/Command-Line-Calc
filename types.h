@@ -9,7 +9,9 @@ typedef enum {
 	SUB,
 	MUL,
 	DIV,
-	POW
+	POW,
+	OPEN_PAREN,
+	CLOSE_PAREN
 } operation_t;
 
 typedef struct infix_s {

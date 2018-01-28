@@ -14,12 +14,38 @@ int postfixToInfix(const char *expression);
 static infix_t *stack = NULL;
 static infix_t *infixString = NULL;
 
+void printInfixString(void) {
+	for (infix_t *i = infixString; i != NULL; i = i->next) {
+		if (i->op == NOP) {
+			printf("%g\n", i->val);
+		} else {
+			switch(i->op) {
+				case ADD:
+					printf("ADD\n");
+					break;
+				case SUB:
+					printf("SUB\n");
+					break;
+				case DIV:
+					printf("DIV\n");
+					break;
+				case MUL:
+					printf("MUL\n");
+					break;
+				case POW:
+					printf("POW\n");
+					break;
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 	
-	char input[1024];
+	char input[1024] = {0};
 	
 	if (argc <= 1) {
-		printf("Command line Calculator shell mode.\nType 'exit' to quit.\n");
+		printf("Command Line Calculator shell mode.\nType 'exit' to quit.\n\n");
 		while (1) {
 			printf(">>");
 			if (scanf("%[^\n]%*c", input)) {
@@ -31,13 +57,12 @@ int main(int argc, char **argv) {
 				emptyStack();
 				
 				if (infixString == NULL) {
-					freeString();
 					continue;
 				}
 				
 				calcString();
 				
-				printf("%lf\n", infixString->val);
+				printf("%g\n", infixString->val);
 				freeString();
 			}
 		}
@@ -49,7 +74,6 @@ int main(int argc, char **argv) {
 	}
 	
 	postfixToInfix(input);
-	
 	emptyStack();
 	
 	if (infixString == NULL) {
@@ -58,7 +82,7 @@ int main(int argc, char **argv) {
 	
 	calcString();
 	
-	printf("%lf\n", infixString->val);
+	printf("%g\n", infixString->val);
 	freeString();
 	
 	return 0;
@@ -142,13 +166,13 @@ void calcString() {
 
 void emptyStack(void) {
 	infix_t *i = stack;
-	while (i != NULL) {
+	//while (i != NULL) {
 		infix_t *stringEnd = infixString;
 		for (; stringEnd->next != NULL; stringEnd = stringEnd->next);
 		stringEnd->next = i;
-		i = i->next;
-		stringEnd->next->next = NULL;
-	}
+		//i = i->next;
+		//stringEnd->next->next = NULL;
+	//}
 	stack = NULL;
 }
 
@@ -213,15 +237,15 @@ void parseString(char *string) {
 			return;
 		}
 		
-		int stackPres = 1 + (stack->op == MUL || stack->op == DIV) + (stack->op == POW) * 2;
-		int nextPres = 1 + (next->op == MUL || next->op == DIV) + (next->op == POW) * 2;
+		int stackPres = 1 + (stack->op == MUL || stack->op == DIV) + ((stack->op == POW) * 2);
+		int nextPres  = 1 + (next->op == MUL || next->op == DIV)   + ((next->op == POW) * 2);
 		
 		if (stackPres >= nextPres) {
-			
-			infix_t *i;
-			for (i = infixString; i->next != NULL; i = i->next);
+			infix_t *i = infixString;
+			for (; i->next != NULL; i = i->next);
 			i->next = stack;
 			stack = stack->next;
+			i->next->next = NULL;
 			
 			if (stack == NULL) {
 				stack = next;

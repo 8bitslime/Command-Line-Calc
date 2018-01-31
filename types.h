@@ -11,7 +11,11 @@ typedef enum {
 	DIV,
 	POW,
 	OPEN_PAREN,
-	CLOSE_PAREN
+	CLOSE_PAREN,
+	_UNARY_OPS,
+	SIN,
+	COS,
+	TAN
 } operation_t;
 
 typedef struct infix_s {

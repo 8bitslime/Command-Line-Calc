@@ -17,7 +17,7 @@ static infix_t *infixString = NULL;
 void printInfixString(void) {
 	for (infix_t *i = infixString; i != NULL; i = i->next) {
 		if (i->op == NOP) {
-			printf("%g ", i->val);
+			printf("%.2f ", i->val);
 		} else {
 			switch(i->op) {
 				case ADD:
@@ -37,6 +37,15 @@ void printInfixString(void) {
 					break;
 				case OPEN_PAREN:
 					printf("( ");
+					break;
+				case SIN:
+					printf("SIN ");
+					break;
+				case COS:
+					printf("COS ");
+					break;
+				case TAN:
+					printf("TAN ");
 					break;
 				case CLOSE_PAREN:
 				default:
@@ -114,22 +123,61 @@ void calcString() {
 		
 		if (ptr2 != NULL) {
 			
-			infix_t *ptr3 = ptr2->next;
-			
-			if (ptr3 != NULL) {
-				if (ptr2->op != NOP) {
+			if (ptr2->op != NOP) {
+				if (ptr2->op > _UNARY_OPS) {
+					switch (ptr2->op) {
+						case SIN:
+							ptr->val = sin(ptr->val);
+							break;
+						case COS:
+							ptr->val = cos(ptr->val);
+							break;
+						case TAN:
+							ptr->val = tan(ptr->val);
+							break;
+					}
+					
+					ptr->next = ptr2->next;
+					ptr = infixString;
+					
+					free(ptr2);
+					continue;
+				}  else {
 					if (ptr == infixString) {
 						break;
 					}
-					ptr = ptr3;
+					ptr = infixString;
 					continue;
 				}
+			}
+			
+			infix_t *ptr3 = ptr2->next;
+			
+			if (ptr3 != NULL) {
 				
 				if (ptr3->op == NOP) {
 					if (ptr3->next == NULL) {
 						break;
 					}
 					ptr = ptr2;
+					continue;
+				} else if (ptr3->op > _UNARY_OPS) {
+					switch (ptr3->op) {
+						case SIN:
+							ptr2->val = sin(ptr2->val);
+							break;
+						case COS:
+							ptr2->val = cos(ptr2->val);
+							break;
+						case TAN:
+							ptr2->val = tan(ptr2->val);
+							break;
+					}
+					
+					ptr2->next = ptr3->next;
+					ptr = infixString;
+					
+					free(ptr3);
 					continue;
 				}
 				
@@ -220,6 +268,12 @@ void parseString(char *string) {
 		next->val = 2.71828182845904523536;
 	} else if (strcmp(string, "pi") == 0) {
 		next->val = 3.14159265358979323846;
+	} else if (strcmp(string, "sin") == 0) {
+		next->op = SIN;
+	} else if (strcmp(string, "cos") == 0) {
+		next->op = COS;
+	} else if (strcmp(string, "tan") == 0) {
+		next->op = TAN;
 	} else if (*string == '+') {
 		next->op = ADD;
 	} else if (*string == '-') {
@@ -288,8 +342,10 @@ void parseString(char *string) {
 			return;
 		}
 		
-		int stackPres = (stack->op == ADD || stack->op == SUB) + ((stack->op == MUL || stack->op == DIV) * 2) + ((stack->op == POW) * 3);
-		int nextPres  = (next->op == ADD || next->op == SUB)   + ((next->op == MUL || next->op == DIV) * 2)   + ((next->op == POW) * 3);
+		int stackPres = (stack->op == ADD || stack->op == SUB) + ((stack->op == MUL || stack->op == DIV) * 2)
+						+ ((stack->op == POW) * 3) + ((stack->op > _UNARY_OPS) * 4);
+		int nextPres  = (next->op == ADD || next->op == SUB)   + ((next->op == MUL || next->op == DIV) * 2)
+						+ ((next->op == POW) * 3) + ((next->op > _UNARY_OPS) * 4);
 		
 		if (stackPres >= nextPres) {
 			infix_t *i = infixString;

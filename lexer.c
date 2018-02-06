@@ -33,11 +33,25 @@ int main() {
 	buffer[length] = 0;
 	
 	lex_array_t *array = lex(buffer);
+	//lex_array_t *array = lex("\"Hello world!\" 1 + 2");
 	
-	//for (int i = 0; i < array->size; i++) {
-	//	printf("%s\n", array->tokens[i]->string);
-	//}
+	for (int i = 0; i < array->size; i++) {
+		printf("%s\n", array->tokens[i]->string);
+	}
 	
+	return 0;
+}
+
+static char OPERATOR_CHARS[] = {
+	'+', '-', '*', '/', '^', '=', '|', '&', '~', ':', '%', '<', '>', '?'
+};
+
+static int isOperator(char c) {
+	for (int i = 0; i < (sizeof(OPERATOR_CHARS) / sizeof(char)); i++) {
+		if (c == OPERATOR_CHARS[i]) {
+			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -105,6 +119,7 @@ lex_array_t *lex(const char *input) {
 		NUMBER_W_DECIMAL,
 		NUMBER_HEX,
 		STRING,
+		STRING_ESCAPE,
 		OPERATOR
 	};
 	
@@ -137,6 +152,9 @@ lex_array_t *lex(const char *input) {
 			case ']':
 				lex_pushback(&out, input, i, i + 1, TYPE_R_BRACKET);
 				continue;
+			case ',':
+				lex_pushback(&out, input, i, i + 1, TYPE_OPERATOR);
+				continue;
 			}
 			
 			if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r') {
@@ -149,7 +167,7 @@ lex_array_t *lex(const char *input) {
 				state = NUMBER_W_DECIMAL;
 			} else if (cur == '"' || cur == '\'') {
 				state = STRING;
-			} else if (cur == '+' || cur == '-' || cur == '*' || cur == '/' || cur == '^' || cur == '=') {
+			} else if (isOperator(cur)) {
 				state = OPERATOR;
 			}
 			
@@ -157,29 +175,6 @@ lex_array_t *lex(const char *input) {
 			beginChar = cur;
 			continue;
 		} else {
-			if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' && state != STRING) {
-				token_type_t type;
-				switch (state) {
-				case NUMBER:
-				case NUMBER_W_DECIMAL:
-				case NUMBER_HEX:
-					type = TYPE_NUMBER_LITERAL;
-					break;
-				case STRING:
-					type = TYPE_STRING_LITERAL;
-					break;
-				case OPERATOR:
-					type = TYPE_OPERATOR;
-					break;
-				case NAME:
-					type = TYPE_IDENTIFIER;
-					break;
-				}
-				lex_pushback(&out, input, begin, i, type);
-				state = NO_STATE;
-				continue;
-			}
-			
 			switch (state) {
 			case NAME:
 				if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || cur == '_' || (cur >= '0' && cur <= '9')) {
@@ -214,17 +209,27 @@ lex_array_t *lex(const char *input) {
 					goto loop;
 				}
 				break;
+			case STRING_ESCAPE:
+				state = STRING;
+				continue;
 			case STRING:
-				if (cur == '"' && beginChar == '"' && input[i-1] != '\\') {
-					lex_pushback(&out, input, begin, i, TYPE_STRING_LITERAL);
+				if (cur == '"' && beginChar == '"') {
+					lex_pushback(&out, input, begin, i+1, TYPE_STRING_LITERAL);
 					state = NO_STATE;
+					continue;
+				} else if (cur == '\'' && beginChar == '\'') {
+					lex_pushback(&out, input, begin, i+1, TYPE_STRING_LITERAL);
+					state = NO_STATE;
+					continue;
+				} else if (cur == '\\'){
+					state = STRING_ESCAPE;
 					continue;
 				} else {
 					continue;
 				}
 				break;
 			case OPERATOR:
-				if (cur == '+' || cur == '-' || cur == '*' || cur == '/' || cur == '^' || cur == '=') {
+				if (isOperator(cur)) {
 					continue;
 				} else {
 					lex_pushback(&out, input, begin, i, TYPE_OPERATOR);
@@ -232,6 +237,29 @@ lex_array_t *lex(const char *input) {
 					goto loop;
 				}
 				break;
+			}
+			
+			if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r') {
+				token_type_t type;
+				switch (state) {
+				case NUMBER:
+				case NUMBER_W_DECIMAL:
+				case NUMBER_HEX:
+					type = TYPE_NUMBER_LITERAL;
+					break;
+				case STRING:
+					type = TYPE_STRING_LITERAL;
+					break;
+				case OPERATOR:
+					type = TYPE_OPERATOR;
+					break;
+				case NAME:
+					type = TYPE_IDENTIFIER;
+					break;
+				}
+				lex_pushback(&out, input, begin, i, type);
+				state = NO_STATE;
+				continue;
 			}
 		}
 	}

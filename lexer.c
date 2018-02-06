@@ -35,9 +35,11 @@ int main() {
 	lex_array_t *array = lex(buffer);
 	//lex_array_t *array = lex("\"Hello world!\" 1 + 2");
 	
-	for (int i = 0; i < array->size; i++) {
-		printf("%s\n", array->tokens[i]->string);
-	}
+	// for (int i = 0; i < array->size; i++) {
+	// 	//printf("%s\n", array->tokens[i]->string);
+	// }
+	
+	lex_free(array);
 	
 	return 0;
 }
@@ -286,4 +288,12 @@ lex_array_t *lex(const char *input) {
 	}
 	
 	return out;
+}
+
+void lex_free(lex_array_t *array) {
+	#pragma omp parallel for
+	for (int i = 0; i < array->size; i++) {
+		free(array->tokens[i]);
+	}
+	free(array);
 }

@@ -33,5 +33,6 @@ typedef struct lex_array_s {
 } lex_array_t;
 
 lex_array_t *lex(const char *input);
+void lex_free(lex_array_t *array);
 
 #endif

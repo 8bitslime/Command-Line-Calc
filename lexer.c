@@ -7,7 +7,6 @@
 #include "lexer.h"
 
 int main() {
-	
 	FILE *file;
 	
 	file = fopen("lexer.c", "rb");
@@ -23,7 +22,7 @@ int main() {
 	char *buffer = malloc(length + 1);
 	
 	if (buffer == NULL) {
-		printf("Memory allocation failed at line: %d\n", __LINE__);
+		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -61,7 +60,7 @@ static lex_array_t *lex_alloc(int capacity) {
 	lex_array_t *out = malloc(sizeof(lex_array_t) + sizeof(token_t*) * capacity);
 	
 	if (out == NULL) {
-		printf("Memory allocation failed at line: %d\n", __LINE__);
+		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -80,7 +79,7 @@ static void lex_pushback(lex_array_t **lexArray, const char *string, int begin, 
 		array = realloc(array, sizeof(lex_array_t) + sizeof(token_t*) * newCapacity);
 		
 		if (array == NULL) {
-			printf("Memory allocation failed at line: %d\n", __LINE__);
+			printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
 			exit(EXIT_FAILURE);
 		}
 		
@@ -95,7 +94,7 @@ static void lex_pushback(lex_array_t **lexArray, const char *string, int begin, 
 	token_t *token = malloc(sizeof(token_t) + sizeof(char) * (stringSize + 1));
 	
 	if (token == NULL) {
-		printf("Memory allocation failed at line: %d\n", __LINE__);
+		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -122,7 +121,8 @@ lex_array_t *lex(const char *input) {
 		NUMBER_HEX,
 		STRING,
 		STRING_ESCAPE,
-		OPERATOR
+		OPERATOR,
+		COMMENT
 	};
 	
 	int state      = NO_STATE;
@@ -134,6 +134,36 @@ lex_array_t *lex(const char *input) {
 		char cur = input[i];
 		
 		loop:
+		
+		if (state == COMMENT) {
+			if (cur == '\n' || cur == '\r') {
+				state = NO_STATE;
+				continue;
+			}
+			continue;
+		} else if (cur == '#') {
+			token_type_t type;
+			switch (state) {
+			case NUMBER:
+			case NUMBER_W_DECIMAL:
+			case NUMBER_HEX:
+				type = TYPE_NUMBER_LITERAL;
+				break;
+			case STRING:
+				type = TYPE_STRING_LITERAL;
+				break;
+			case OPERATOR:
+				type = TYPE_OPERATOR;
+				break;
+			case NAME:
+				type = TYPE_IDENTIFIER;
+				break;
+			}
+			lex_pushback(&out, input, begin, i, type);
+			state = COMMENT;
+			continue;
+		}
+		
 		if (state == NO_STATE) {
 			switch (cur) {
 			case '(':

@@ -6,42 +6,42 @@
 
 #include "lexer.h"
 
-int main() {
-	FILE *file;
+// int main() {
+// 	FILE *file;
 	
-	file = fopen("lexer.c", "rb");
+// 	file = fopen("lexer.c", "rb");
 	
-	if (file == NULL) {
-		printf("file couldn't open!\n");
-		exit(EXIT_FAILURE);
-	}
+// 	if (file == NULL) {
+// 		printf("file couldn't open!\n");
+// 		exit(EXIT_FAILURE);
+// 	}
 	
-	fseek(file, 0, SEEK_END);
-	int length = ftell(file);
-	fseek(file, 0, SEEK_SET);
-	char *buffer = malloc(length + 1);
+// 	fseek(file, 0, SEEK_END);
+// 	int length = ftell(file);
+// 	fseek(file, 0, SEEK_SET);
+// 	char *buffer = malloc(length + 1);
 	
-	if (buffer == NULL) {
-		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
-		exit(EXIT_FAILURE);
-	}
+// 	if (buffer == NULL) {
+// 		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
+// 		exit(EXIT_FAILURE);
+// 	}
 	
-	fread(buffer, 1, length, file);
-	fclose(file);
+// 	fread(buffer, 1, length, file);
+// 	fclose(file);
 	
-	buffer[length] = 0;
+// 	buffer[length] = 0;
 	
-	lex_array_t *array = lex(buffer);
-	//lex_array_t *array = lex("\"Hello world!\" 1 + 2");
+// 	lex_array_t *array = lex(buffer);
+// 	//lex_array_t *array = lex("\"Hello world!\" 1 + 2");
 	
-	// for (int i = 0; i < array->size; i++) {
-	// 	//printf("%s\n", array->tokens[i]->string);
-	// }
+// 	// for (int i = 0; i < array->size; i++) {
+// 	// 	//printf("%s\n", array->tokens[i]->string);
+// 	// }
 	
-	lex_free(array);
+// 	lex_free(array);
 	
-	return 0;
-}
+// 	return 0;
+// }
 
 static char OPERATOR_CHARS[] = {
 	'+', '-', '*', '/', '^', '=', '|', '&', '~', ':', '%', '<', '>', '?'

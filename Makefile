@@ -1,7 +1,7 @@
 CC := gcc
-CFLAGS := -std=c99
+CFLAGS := -std=c99 -g -Wall -pedantic -fopenmp
 
-SRCS := cc.c
+SRCS := cc.c lexer.c parser.c
 OBJS := $(SRCS:.c=.o)
 
 .PHONY: clean

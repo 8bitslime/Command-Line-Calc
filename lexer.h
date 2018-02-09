@@ -10,6 +10,7 @@ typedef enum token_type_e {
 	TYPE_NUMBER_LITERAL,
 	TYPE_STRING_LITERAL,
 	
+	TYPE_PARENS,
 	
 	TYPE_L_PAREN,
 	TYPE_R_PAREN,

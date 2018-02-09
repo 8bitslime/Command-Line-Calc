@@ -2,7 +2,7 @@
 
 int main (int argc, char **argv) {
 	
-	lex_array_t *tokens = lex("1+2*3");
+	lex_array_t *tokens = lex("1+2-3+3*5/2");
 	ast_node_t *tree = ast_build_tree(tokens);
 	
 	lex_free(tokens);

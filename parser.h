@@ -13,14 +13,26 @@ typedef enum ast_node_type_e {
 	NODE_L_PAREN
 } ast_node_type_t;
 
+typedef enum operator_type_e {
+	NOP = 0,
+	ADD, SUB,
+	MUL, DIV,
+	POW,
+	FUNC,
+	L_PAREN, R_PAREN
+} operator_type_t;
+
 typedef union number_u {
 	double real;
-	//TODO: more vectors, arrays, whatever
+	//TODO: vectors, arrays, whatever
 } number_t;
 
 typedef struct ast_node_s {
 	ast_node_type_t type;
-	number_t value;
+	union {
+		operator_type_t op;
+		number_t value;
+	} data;
 	token_t *token;
 	struct ast_node_s **children;
 	int numChildren;

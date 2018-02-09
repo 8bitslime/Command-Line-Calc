@@ -4,15 +4,6 @@
 
 #include "parser.h"
 
-typedef enum operator_type_e {
-	NOP = 0,
-	ADD, SUB,
-	MUL, DIV,
-	POW,
-	FUNC,
-	L_PAREN, R_PAREN
-} operator_type_t;
-
 typedef struct stack_data_u {
 	operator_type_t op;
 	ast_node_t *node;
@@ -101,8 +92,12 @@ static operator_type_t operator_parse_string(const char *string) {
 		return NOP;
 	} else if (strncmp(string, "+", 1) == 0) {
 		return ADD;
+	} else if (strncmp(string, "-", 1) == 0) {
+		return SUB;
 	} else if (strncmp(string, "*", 1) == 0) {
 		return MUL;
+	} else if (strncmp(string, "/", 1) == 0) {
+		return DIV;
 	}
 	
 	return NOP;
@@ -128,19 +123,18 @@ static ast_node_t *ast_alloc_node(int numChildren) {
 
 static ast_node_t *ast_build_node(token_t *token) {
 	ast_node_t *out = NULL;
-	number_t temp;
 	
 	switch (token->type) {
 	case TYPE_NUMBER_LITERAL:
 		out = ast_alloc_node(0);
 		out->type = NODE_VALUE;
-		temp.real = atof(token->string);
-		out->value = temp;
+		out->data.value = (number_t){atof(token->string)};
 		break;
 	
 	case TYPE_OPERATOR:
 		//TODO: check operator arguments
 		out = ast_alloc_node(2);
+		out->data.op = operator_parse_string(token->string);
 		out->type = NODE_OPERATOR;
 		break;
 	
@@ -184,7 +178,7 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 		
 		case NODE_OPERATOR:
 			{
-				stack_top.op = operator_parse_string(node->token->string);
+				stack_top.op = node->data.op;
 				int op = operator_get_precedence(stack_top.op);
 				
 				operator_type_t op_top_stack_type = stack_get_top(op_stack).op;
@@ -204,7 +198,7 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 					};
 					stack_push(&expr_stack, push);
 					
-					op_top_stack_type = stack_get_top(op_stack).op;
+					operator_type_t op_top_stack_type = stack_get_top(op_stack).op;
 					op_top_stack = operator_get_precedence(op_top_stack_type);
 				}
 				

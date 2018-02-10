@@ -229,8 +229,6 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 		stack_push(&expr_stack, push);
 	}
 	
-	printf("expresion stack size: %i", expr_stack->size);
-	
 	ast_node_t *root = stack_pop(expr_stack).node;
 	
 	free(op_stack);

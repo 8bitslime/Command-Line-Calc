@@ -164,6 +164,38 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 		//TODO: check if vector/array literal [1, 2, 3]
 		//TODO: check if function or code block
 		
+		if (token->type == TYPE_L_PAREN) {
+			stack_data_t paren_push = {
+				L_PAREN,
+				NULL
+			};
+			stack_push(&op_stack, paren_push);
+			continue;
+		} else if (token->type == TYPE_R_PAREN) {
+			while (stack_get_top(op_stack).op != L_PAREN && stack_get_top(op_stack).op != NOP) {
+				stack_data_t op_stack_data = stack_pop(op_stack);
+				ast_node_t *top_op_stack = op_stack_data.node;
+				ast_node_t *expr1 = stack_pop(expr_stack).node;
+				ast_node_t *expr0 = stack_pop(expr_stack).node;
+				
+				top_op_stack->children[0] = expr0;
+				top_op_stack->children[1] = expr1;
+				
+				stack_data_t push = {
+					op_stack_data.op,
+					top_op_stack
+				};
+				stack_push(&expr_stack, push);
+			}
+			if (stack_get_top(op_stack).op == L_PAREN) {
+				stack_pop(op_stack);
+			} else {
+				//TODO: error handeling or let it slide?
+			}
+			continue;
+			
+		}
+		
 		ast_node_t *node = ast_build_node(token);
 		
 		stack_data_t stack_top = {

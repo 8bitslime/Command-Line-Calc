@@ -6,6 +6,7 @@ typedef enum token_type_e {
 	
 	TYPE_IDENTIFIER,
 	TYPE_OPERATOR,
+	_TYPE_OPERATOR_UNSPLIT,
 	
 	TYPE_NUMBER_LITERAL,
 	TYPE_STRING_LITERAL,
@@ -35,5 +36,7 @@ typedef struct lex_array_s {
 
 lex_array_t *lex(const char *input);
 void lex_free(lex_array_t *array);
+
+void lex_dump(const lex_array_t *array, const char *seperator);
 
 #endif

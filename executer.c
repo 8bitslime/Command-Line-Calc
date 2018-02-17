@@ -7,6 +7,10 @@
 
 ast_node_t *simplify_tree(ast_node_t *tree) {
 	
+	if (tree == NULL) {
+		return NULL;
+	}
+	
 	if (tree->type == NODE_OPERATOR) {
 		ast_node_t *first_child = simplify_tree(tree->children[0]);
 		

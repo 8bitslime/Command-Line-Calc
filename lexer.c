@@ -6,45 +6,16 @@
 
 #include "lexer.h"
 
-// int main() {
-// 	FILE *file;
-	
-// 	file = fopen("lexer.c", "rb");
-	
-// 	if (file == NULL) {
-// 		printf("file couldn't open!\n");
-// 		exit(EXIT_FAILURE);
-// 	}
-	
-// 	fseek(file, 0, SEEK_END);
-// 	int length = ftell(file);
-// 	fseek(file, 0, SEEK_SET);
-// 	char *buffer = malloc(length + 1);
-	
-// 	if (buffer == NULL) {
-// 		printf("Memory allocation failed in %s on line %d\n", __FILE__, __LINE__);
-// 		exit(EXIT_FAILURE);
-// 	}
-	
-// 	fread(buffer, 1, length, file);
-// 	fclose(file);
-	
-// 	buffer[length] = 0;
-	
-// 	lex_array_t *array = lex(buffer);
-// 	//lex_array_t *array = lex("\"Hello world!\" 1 + 2");
-	
-// 	// for (int i = 0; i < array->size; i++) {
-// 	// 	//printf("%s\n", array->tokens[i]->string);
-// 	// }
-	
-// 	lex_free(array);
-	
-// 	return 0;
-// }
-
 static char OPERATOR_CHARS[] = {
-	'+', '-', '*', '/', '^', '=', '|', '&', '~', ':', '%', '<', '>', '?'
+	'+', '-', '*', '/', '^', '=', '|', '&', '~', ':', '%', '<', '>', '?', '!'
+};
+
+static char* OPERATOR_LIST[] = {
+	"++", "--",
+	"+=", "-=", "*=", "/=", "^=",
+	"<=", ">=",
+	"+", "-", "*", "/", "^", "%", "!"
+	"<", ">", "&", "|", "~"
 };
 
 static int isOperator(char c) {
@@ -73,6 +44,19 @@ static lex_array_t *lex_alloc(int capacity) {
 
 static void lex_pushback(lex_array_t **lexArray, const char *string, int begin, int end, token_type_t type) {
 	lex_array_t *array = *lexArray;
+	
+	if (type == _TYPE_OPERATOR_UNSPLIT) {
+		for (int i = 0; i < (sizeof(OPERATOR_LIST) / sizeof(char*)); i++) {
+			int opSize = strlen(OPERATOR_LIST[i]);
+			if (strncmp(string + begin, OPERATOR_LIST[i], opSize) == 0) {
+				lex_pushback(lexArray, string, begin, begin + opSize, TYPE_OPERATOR);
+				begin += opSize;
+			}
+			if (begin >= end) {
+				return;
+			}
+		}
+	}
 	
 	if (array->size >= array->capacity) {
 		int newCapacity = array->capacity * 2;
@@ -326,4 +310,10 @@ void lex_free(lex_array_t *array) {
 		free(array->tokens[i]);
 	}
 	free(array);
+}
+
+void lex_dump(const lex_array_t *array, const char *seperator) {
+	for (int i = 0; i < array->size; i++) {
+		printf("%s %s", array->tokens[i]->string, seperator);
+	}
 }

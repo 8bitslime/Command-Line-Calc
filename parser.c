@@ -178,8 +178,18 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 				ast_node_t *expr1 = stack_pop(expr_stack).node;
 				ast_node_t *expr0 = stack_pop(expr_stack).node;
 				
-				top_op_stack->children[0] = expr0;
-				top_op_stack->children[1] = expr1;
+				//implicit leading 0
+				//TODO: binary operators only (maybe?)
+				if (expr0 == NULL) {
+					top_op_stack->numChildren = 1;
+					if (op_stack_data.op == SUB) {
+						expr1->data.value.real *= -1;
+					}
+					top_op_stack->children[0] = expr1;
+				} else {
+					top_op_stack->children[0] = expr0;
+					top_op_stack->children[1] = expr1;
+				}
 				
 				stack_data_t push = {
 					op_stack_data.op,
@@ -221,8 +231,16 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 					ast_node_t *expr1 = stack_pop(expr_stack).node;
 					ast_node_t *expr0 = stack_pop(expr_stack).node;
 					
-					top_op_stack->children[0] = expr0;
-					top_op_stack->children[1] = expr1;
+					if (expr0 == NULL) {
+						top_op_stack->numChildren = 1;
+						if (op_top_stack_type == SUB) {
+							expr1->data.value.real *= -1;
+						}
+						top_op_stack->children[0] = expr1;
+					} else {
+						top_op_stack->children[0] = expr0;
+						top_op_stack->children[1] = expr1;
+					}
 					
 					stack_data_t push = {
 						op_top_stack_type,
@@ -251,8 +269,16 @@ ast_node_t *ast_build_tree(lex_array_t *tokens) {
 		ast_node_t *expr1 = stack_pop(expr_stack).node;
 		ast_node_t *expr0 = stack_pop(expr_stack).node;
 		
-		top_op_stack->children[0] = expr0;
-		top_op_stack->children[1] = expr1;
+		if (expr0 == NULL) {
+			top_op_stack->numChildren = 1;
+			if (op_top_stack_type == SUB) {
+				expr1->data.value.real *= -1;
+			}
+			top_op_stack->children[0] = expr1;
+		} else {
+			top_op_stack->children[0] = expr0;
+			top_op_stack->children[1] = expr1;
+		}
 		
 		stack_data_t push = {
 			op_top_stack_type,
